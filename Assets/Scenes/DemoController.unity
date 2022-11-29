@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 390539775}
   - component: {fileID: 390539774}
   - component: {fileID: 390539773}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -535,10 +535,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rb2d: {fileID: 1981866161}
+  groundLayers:
+    serializedVersion: 2
+    m_Bits: 64
   movementAcceleration: 50
   maxMovementSpeed: 12
-  linearDrag: 10
-  jumpForce: 10
+  groundLinearDrag: 0
+  jumpForce: 12
+  airLinealDrag: 2.5
+  fallMultiplayer: 8
+  lowJumpFallMultiplayer: 5
+  extraJumps: 2
+  groundRaycastLength: 1
 --- !u!1 &2058797433
 GameObject:
   m_ObjectHideFlags: 0
@@ -550,7 +558,7 @@ GameObject:
   - component: {fileID: 2058797436}
   - component: {fileID: 2058797435}
   - component: {fileID: 2058797434}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
