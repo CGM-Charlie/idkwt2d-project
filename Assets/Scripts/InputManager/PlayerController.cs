@@ -50,9 +50,11 @@ namespace Kizuna.InputManager {
         
         private void Movement_Jump(InputAction.CallbackContext context) {
             if (context.performed) {
-                movement.SetIsJumping(true);
                 movement.Jump();
-            } else {
+                movement.SetIsJumping(true);
+            }
+
+            if (context.canceled) {
                 movement.SetIsJumping(false);
             }
         }

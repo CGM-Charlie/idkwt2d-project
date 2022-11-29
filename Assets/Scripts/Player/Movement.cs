@@ -5,6 +5,7 @@ namespace Kizuna.Player {
     public class Movement : MonoBehaviour {
         [Header("Components")] 
         [SerializeField] private Rigidbody2D rb2d;
+        [SerializeField] private Animator animator;
 
         [Header("Layer Masks")] 
         [SerializeField] private LayerMask groundLayers;
@@ -21,18 +22,25 @@ namespace Kizuna.Player {
         [SerializeField] private float airLinealDrag;
         [SerializeField] private float fallMultiplayer;
         [SerializeField] private float lowJumpFallMultiplayer;
-        [SerializeField] private int extraJumps;
-        private int jumpCount;
-        
+        [SerializeField] private int jumps;
+        [SerializeField] private float hangTime;
+        [SerializeField] private float jumpBufferTime;
+        private int jumpCounter;
+        private float hangTimeCounter;
+        private float jumpBufferCounter; // TODO: FIX JUMP BUFFER
         private bool isJumping;
 
         [Header("Ground Collision Variables")] 
         [SerializeField] private float groundRaycastLength;
+        [SerializeField] private Vector3 groundRaycastOffset;
         private bool onGround;
 
         // Private Values
         private Vector2 inputVector;
         private float horizontalDirection;
+        
+        // Animator Values
+        private bool isFacingRight = true;
 
         private bool changingDirection => 
             (rb2d.velocity.x > 0f && horizontalDirection < 0f) || (rb2d.velocity.x < 0f && horizontalDirection > 0f);
@@ -40,6 +48,7 @@ namespace Kizuna.Player {
         private void Start() {
             // Assign Components
             rb2d = GetComponent<Rigidbody2D>();
+            animator = GetComponent<Animator>();
             
             inputVector = Vector2.zero;
             horizontalDirection = inputVector.x;
@@ -47,6 +56,31 @@ namespace Kizuna.Player {
         
         private void Update() {
             horizontalDirection = inputVector.x;
+            
+            Debug.Log(hangTimeCounter + " " + (hangTimeCounter > 0f || jumpCounter > 0) + " " + jumpCounter);
+
+            // Jump Buffer
+            if (isJumping) {
+                jumpBufferCounter = jumpBufferTime;
+            } else {
+                jumpBufferCounter -= Time.deltaTime;
+            }
+
+            // Animation
+            animator.SetBool("IsGrounded", onGround);
+            animator.SetFloat("HorizontalDirection", Mathf.Abs(horizontalDirection));
+
+            if (horizontalDirection < 0f && isFacingRight) {
+                FlipCharacter();
+            } else if (horizontalDirection > 0f && !isFacingRight) {
+                FlipCharacter();
+            }
+
+            if (rb2d.velocity.y < 0f) {
+                animator.SetBool("IsJumping", false);
+                animator.SetBool("IsFalling", true);
+            }
+
         }
 
         private void FixedUpdate() {
@@ -55,9 +89,15 @@ namespace Kizuna.Player {
 
             // Rigid Body Drag
             if (onGround) {
-                jumpCount = extraJumps;
+                jumpCounter = jumps;
+                hangTimeCounter = hangTime;
                 ApplyGroundLinearDrag();
+                
+                // Animation
+                animator.SetBool("IsJumping", false);
+                animator.SetBool("IsFalling", false);
             } else {
+                hangTimeCounter -= Time.deltaTime;
                 ApplyAirLinearDrag();
                 FallMultiplier();
             }
@@ -87,19 +127,25 @@ namespace Kizuna.Player {
         }
 
         private void IsCharacterOnGround() {
+            var position = transform.position;
             onGround = 
-                Physics2D.Raycast(
-                    transform.position * groundRaycastLength, 
-                    Vector2.down, 
-                    groundRaycastLength, 
-                    groundLayers
-                );
+                Physics2D.Raycast(position + groundRaycastOffset, Vector2.down, groundRaycastLength, groundLayers) ||                 
+                Physics2D.Raycast(position - groundRaycastOffset, Vector2.down, groundRaycastLength, groundLayers);
+        }
+
+        private void FlipCharacter() {
+            isFacingRight = !isFacingRight;
+            transform.Rotate(0f, 180f, 0f);
         }
 
         // Gizmos
         private void OnDrawGizmos() {
+            var position = transform.position;
+            
             Gizmos.color = Color.green;
-            Gizmos.DrawLine(transform.position, transform.position + Vector3.down * groundRaycastLength);
+            Gizmos.DrawLine(position + groundRaycastOffset, position + groundRaycastOffset + Vector3.down * groundRaycastLength);
+            Gizmos.DrawLine(position - groundRaycastOffset, position - groundRaycastOffset + Vector3.down * groundRaycastLength);
+
         }
         
         // Fall
@@ -125,14 +171,42 @@ namespace Kizuna.Player {
 
         // TODO: FIX JUMPS
         public void Jump() {
-            if (!onGround) {
-                jumpCount--;
-            }
-            
-            if (onGround || jumpCount > 0) {
+            // if (hangTimeCounter > 0f || jumpCounter > 0) {
+            //     if (!onGround) {
+            //         jumpCounter--;
+            //     }
+            //
+            //     hangTimeCounter = 0f;
+            //     jumpBufferCounter = 0f;
+            //     rb2d.velocity = new Vector2(rb2d.velocity.x, 0f);
+            //     rb2d.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+            //
+            //
+            //     // Animation
+            //     animator.SetBool("IsJumping", true);
+            //     animator.SetBool("IsFalling", false);
+            // }
+
+            if (hangTimeCounter > 0f) {
+                jumpCounter--;
+                
+                hangTimeCounter = 0f;
+                jumpBufferCounter = 0f;
                 rb2d.velocity = new Vector2(rb2d.velocity.x, 0f);
                 rb2d.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+            } else if (jumpCounter > 0) {
+                jumpCounter--;
+                
+                hangTimeCounter = 0f;
+                jumpBufferCounter = 0f;
+                rb2d.velocity = new Vector2(rb2d.velocity.x, 0f);
+                rb2d.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+            
             }
+            
+            // Animation
+            animator.SetBool("IsJumping", true);
+            animator.SetBool("IsFalling", false);
         }
     }
 }
