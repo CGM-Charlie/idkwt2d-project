@@ -23,10 +23,10 @@ namespace Kizuna.Player {
         [SerializeField] private float fallMultiplayer;
         [SerializeField] private float lowJumpFallMultiplayer;
         [SerializeField] private int jumps;
-        [SerializeField] private float hangTime;
+        [SerializeField] private float coyoteJumpTime;
         [SerializeField] private float jumpBufferTime;
         private int jumpCounter;
-        private float hangTimeCounter;
+        private float coyoteJumpTimeCounter;
         private float jumpBufferCounter; // TODO: FIX JUMP BUFFER
         private bool isJumping;
 
@@ -42,7 +42,7 @@ namespace Kizuna.Player {
         // Animator Values
         private bool isFacingRight = true;
 
-        private bool changingDirection => 
+        private bool ChangingDirection => 
             (rb2d.velocity.x > 0f && horizontalDirection < 0f) || (rb2d.velocity.x < 0f && horizontalDirection > 0f);
         
         private void Start() {
@@ -56,15 +56,6 @@ namespace Kizuna.Player {
         
         private void Update() {
             horizontalDirection = inputVector.x;
-            
-            Debug.Log(hangTimeCounter + " " + (hangTimeCounter > 0f || jumpCounter > 0) + " " + jumpCounter);
-
-            // Jump Buffer
-            if (isJumping) {
-                jumpBufferCounter = jumpBufferTime;
-            } else {
-                jumpBufferCounter -= Time.deltaTime;
-            }
 
             // Animation
             animator.SetBool("IsGrounded", onGround);
@@ -90,14 +81,14 @@ namespace Kizuna.Player {
             // Rigid Body Drag
             if (onGround) {
                 jumpCounter = jumps;
-                hangTimeCounter = hangTime;
+                coyoteJumpTimeCounter = coyoteJumpTime;
                 ApplyGroundLinearDrag();
                 
                 // Animation
                 animator.SetBool("IsJumping", false);
                 animator.SetBool("IsFalling", false);
             } else {
-                hangTimeCounter -= Time.deltaTime;
+                coyoteJumpTimeCounter -= Time.deltaTime;
                 ApplyAirLinearDrag();
                 FallMultiplier();
             }
@@ -115,7 +106,7 @@ namespace Kizuna.Player {
 
         // TODO: Fix Drag in vertical axis
         private void ApplyGroundLinearDrag() {
-            if (Mathf.Abs(horizontalDirection) < 0.4f || changingDirection) {
+            if (Mathf.Abs(horizontalDirection) < 0.4f || ChangingDirection) {
                 rb2d.drag = groundLinearDrag;
             } else {
                 rb2d.drag = 0;
@@ -171,37 +162,15 @@ namespace Kizuna.Player {
 
         // TODO: FIX JUMPS
         public void Jump() {
-            // if (hangTimeCounter > 0f || jumpCounter > 0) {
-            //     if (!onGround) {
-            //         jumpCounter--;
-            //     }
-            //
-            //     hangTimeCounter = 0f;
-            //     jumpBufferCounter = 0f;
-            //     rb2d.velocity = new Vector2(rb2d.velocity.x, 0f);
-            //     rb2d.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-            //
-            //
-            //     // Animation
-            //     animator.SetBool("IsJumping", true);
-            //     animator.SetBool("IsFalling", false);
-            // }
+            if (coyoteJumpTimeCounter < 0f) {
+                jumpCounter--;
+            }
 
-            if (hangTimeCounter > 0f) {
-                jumpCounter--;
-                
-                hangTimeCounter = 0f;
+            if (coyoteJumpTimeCounter > 0f || jumpCounter > 0) {
+                coyoteJumpTimeCounter = 0f;
                 jumpBufferCounter = 0f;
                 rb2d.velocity = new Vector2(rb2d.velocity.x, 0f);
                 rb2d.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-            } else if (jumpCounter > 0) {
-                jumpCounter--;
-                
-                hangTimeCounter = 0f;
-                jumpBufferCounter = 0f;
-                rb2d.velocity = new Vector2(rb2d.velocity.x, 0f);
-                rb2d.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-            
             }
             
             // Animation
