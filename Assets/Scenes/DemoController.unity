@@ -982,7 +982,7 @@ MonoBehaviour:
   movementAcceleration: 80
   maxMovementSpeed: 12
   groundLinearDrag: 5
-  jumpForce: 20
+  jumpForce: 18
   airLinealDrag: 2.5
   fallMultiplayer: 8
   lowJumpFallMultiplayer: 5

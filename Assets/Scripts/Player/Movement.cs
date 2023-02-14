@@ -61,6 +61,10 @@ namespace Kizuna.Player {
             animator.SetBool("IsGrounded", onGround);
             animator.SetFloat("HorizontalDirection", Mathf.Abs(horizontalDirection));
             
+            // Jump Buffer
+            jumpBufferCounter -= Time.deltaTime;
+            
+            // Coyote Jump
             if (onGround) {
                 coyoteJumpTimeCounter = coyoteJumpTime;
             } else {
@@ -166,12 +170,16 @@ namespace Kizuna.Player {
             isJumping = value;
         }
 
+        public void SetJumpBuffer() {
+            jumpBufferCounter = jumpBufferTime;
+        }
+
         public void Jump() {
             if (coyoteJumpTimeCounter < 0f) {
                 jumpCounter--;
             }
 
-            if (coyoteJumpTimeCounter > 0f || jumpCounter > 0) {
+            if ((coyoteJumpTimeCounter > 0f || jumpCounter > 0) && jumpBufferCounter > 0) {
                 coyoteJumpTimeCounter = 0f;
                 jumpBufferCounter = 0f;
                 rb2d.velocity = new Vector2(rb2d.velocity.x, 0f);

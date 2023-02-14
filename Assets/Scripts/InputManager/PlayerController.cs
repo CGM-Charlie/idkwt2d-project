@@ -29,6 +29,7 @@ namespace Kizuna.InputManager {
             playerInputActions.PlayerController.Enable();
             
             // Subscribe Methods
+            playerInputActions.PlayerController.Jump.started += Movement_Jump;
             playerInputActions.PlayerController.Jump.performed += Movement_Jump;
             playerInputActions.PlayerController.Jump.canceled += Movement_Jump;
         }
@@ -49,6 +50,10 @@ namespace Kizuna.InputManager {
         }
         
         private void Movement_Jump(InputAction.CallbackContext context) {
+            if (context.started) {
+                movement.SetJumpBuffer();
+            }
+            
             if (context.performed) {
                 movement.Jump();
                 movement.SetIsJumping(true);
