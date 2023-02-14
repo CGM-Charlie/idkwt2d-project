@@ -987,8 +987,8 @@ MonoBehaviour:
   fallMultiplayer: 8
   lowJumpFallMultiplayer: 5
   jumps: 1
-  hangTime: 0.3
-  jumpBufferTime: 0.3
+  coyoteJumpTime: 0.2
+  jumpBufferTime: 0.2
   groundRaycastLength: 1.2
   groundRaycastOffset: {x: 0.59, y: 0, z: 0}
 --- !u!95 &1981866164

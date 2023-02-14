@@ -60,6 +60,12 @@ namespace Kizuna.Player {
             // Animation
             animator.SetBool("IsGrounded", onGround);
             animator.SetFloat("HorizontalDirection", Mathf.Abs(horizontalDirection));
+            
+            if (onGround) {
+                coyoteJumpTimeCounter = coyoteJumpTime;
+            } else {
+                coyoteJumpTimeCounter -= Time.deltaTime;
+            }
 
             if (horizontalDirection < 0f && isFacingRight) {
                 FlipCharacter();
@@ -160,7 +166,6 @@ namespace Kizuna.Player {
             isJumping = value;
         }
 
-        // TODO: FIX JUMPS
         public void Jump() {
             if (coyoteJumpTimeCounter < 0f) {
                 jumpCounter--;
